@@ -22,7 +22,7 @@ pub struct ServerGreeting {
 
 /// An in-band command.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Execute<T, U> {
+pub struct Command<T, U> {
     /// Identifies the command to be executed by the server.
     pub execute: String,
     /// The `arguments` member is used to pass any arguments
@@ -32,18 +32,20 @@ pub struct Execute<T, U> {
     ///
     /// Each command documents what contents will be considered valid
     /// when handling the json-argument.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub arguments: Option<T>,
     /// The `id` member is a transaction identification associated with the command execution.
     ///
     /// It is optional and will be part of the response if provided.
     ///
     /// The id member can be any json-value. A json-number incremented for each successive command works fine.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<U>,
 }
 
 /// An out-of-band command.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct ExecOob<T, U> {
+pub struct OobCommand<T, U> {
     /// Identifies the out-of-band execution command to be executed by the server.
     #[serde(rename = "exec-oob")]
     pub exec_oob: String,
@@ -54,12 +56,14 @@ pub struct ExecOob<T, U> {
     ///
     /// Each command documents what contents will be considered valid
     /// when handling the json-argument.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub arguments: Option<T>,
     /// The `id` member is a transaction identification associated with the command execution.
     ///
     /// It is optional and will be part of the response if provided.
     ///
     /// The id member can be any json-value. A json-number incremented for each successive command works fine.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<U>,
 }
 
@@ -119,6 +123,7 @@ pub struct Event<T> {
     pub event: String,
     /// The `data` member contains event specific data, which is defined in a per-event basis.
     /// It is optional.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<T>,
     /// The timestamp member contains the exact time of when the event occurred in the Server.
     pub timestamp: Timestamp,

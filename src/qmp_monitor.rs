@@ -1,6 +1,8 @@
 //! QMP monitor control.
 use serde::{Deserialize, Serialize};
 
+use crate::generic::Command;
+
 /// Enumeration of capabilities to be advertised during initial client connection.
 ///
 /// Used for agreeing on particular QMP extension behaviors.
@@ -45,9 +47,21 @@ pub struct VersionInfo {
 
 // TODO other structures.
 
+/// Return the current version of QEMU.
+#[inline]
+pub fn query_version() -> Command<(), ()> {
+    Command {
+        execute: "query-version".to_string(),
+        arguments: None,
+        id: None,
+    }
+}
+
+// TODO other constructors.
+
 #[cfg(test)]
 mod tests {
-    use super::{VersionInfo, VersionTriple};
+    use super::{VersionInfo, VersionTriple, query_version};
     #[test]
     fn query_version_result() {
         let string = r#"{
@@ -69,5 +83,12 @@ mod tests {
         assert_eq!(value, serde_json::from_str(string).unwrap());
         let compact_string = r#"{"qemu":{"major":0,"minor":11,"micro":5},"package":""}"#;
         assert_eq!(compact_string, serde_json::to_string(&value).unwrap());
+    }
+    
+    #[test]
+    fn new_query_version() {
+        let cmd = query_version();
+        let compact_string = r#"{"execute":"query-version"}"#;
+        assert_eq!(compact_string, serde_json::to_string(&cmd).unwrap());
     }
 }
