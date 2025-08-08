@@ -10,6 +10,14 @@ use serde::{Deserialize, Serialize};
 /// negotiation.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ServerGreeting {
+    /// Information on a greeting QMP server.
+    #[serde(rename = "QMP")]
+    pub qmp: QmpServerGreeting,
+}
+
+/// A greeting QMP server.
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct QmpServerGreeting {
     /// Server's version information.
     ///
     /// The format is the same as for the 'query-version' command.

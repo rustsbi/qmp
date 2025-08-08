@@ -84,7 +84,7 @@ mod tests {
         let compact_string = r#"{"qemu":{"major":0,"minor":11,"micro":5},"package":""}"#;
         assert_eq!(compact_string, serde_json::to_string(&value).unwrap());
     }
-    
+
     #[test]
     fn new_query_version() {
         let cmd = query_version();
