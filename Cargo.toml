@@ -1,0 +1,13 @@
+[package]
+name = "qmp"
+version = "0.0.0"
+edition = "2024"
+authors = ["Zhouqi Jiang <luojia@hust.edu.cn>"]
+description = "QEMU Machine Protocol (QMP) structure representation library"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/rustsbi/qmp"
+keywords = ["qemu", "virtualization", "vm"]
+categories = ["virtualization", "data-structures"]
+
+[dependencies]
+serde = { version = "1.0.219", default-features = false }
