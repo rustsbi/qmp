@@ -57,6 +57,64 @@ pub struct VersionInfo {
     pub package: String,
 }
 
+/// An enumeration of the actions taken when the watchdog device's timer is expired.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum WatchdogAction {
+    /// System resets.
+    Reset,
+    /// System shutdown.
+    ///
+    /// Note that it is similar to powerdown, which tries to set to
+    /// system status and notify guest.
+    Shutdown,
+    /// System poweroff, the emulator program exits.
+    Poweroff,
+    /// System pauses, similar to stop.
+    Pause,
+    /// System enters debug state.
+    Debug,
+    /// Nothing is done.
+    None,
+    /// A non-maskable interrupt is injected into the first VCPU
+    /// (all VCPUS on x86).
+    InjectNmi,
+}
+
+/// Possible QEMU actions upon guest reboot.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum RebootAction {
+    /// Reset the VM.
+    Reset,
+    /// Shutdown the VM and exit, according to the shutdown action.
+    Shutdown,
+}
+
+/// Possible QEMU actions upon guest shutdown.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ShutdownAction {
+    /// Shutdown the VM and exit.
+    Poweroff,
+    /// Pause the VM.
+    Pause,
+}
+
+/// Panic action.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum PanicAction {
+    /// Continue VM execution.
+    None,
+    /// Pause the VM.
+    Pause,
+    /// Shutdown the VM and exit, according to the shutdown action.
+    Shutdown,
+    /// Shutdown the VM and exit with non-zero status.
+    ExitFailure,
+}
+
 // TODO other structures.
 
 /// Return the current version of QEMU.
@@ -65,6 +123,46 @@ pub fn query_version() -> Command<(), ()> {
     Command {
         execute: "query-version".to_string(),
         arguments: None,
+        id: None,
+    }
+}
+
+/// Arguments of 'watchdog-set-action'.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct WatchdogSetActionParams {
+    /// Value 'action'.
+    pub action: WatchdogAction,
+}
+
+/// Set watchdog action.
+#[inline]
+pub fn watchdog_set_action(value: WatchdogAction) -> Command<WatchdogSetActionParams, ()> {
+    Command {
+        execute: "watchdog-set-action".to_string(),
+        arguments: Some(WatchdogSetActionParams { action: value }),
+        id: None,
+    }
+}
+
+/// Arguments of 'set-action'.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct SetActionParams {
+    /// `RebootAction` action taken on guest reboot.
+    pub reboot: Option<RebootAction>,
+    /// `ShutdownAction` action taken on guest shutdown.
+    pub shutdown: Option<ShutdownAction>,
+    /// `PanicAction` action taken on guest panic.
+    pub panic: Option<PanicAction>,
+    /// `WatchdogAction` action taken when watchdog timer expires.
+    pub watchdog: Option<WatchdogAction>,
+}
+
+/// Set the actions that will be taken by the emulator in response to guest events.
+#[inline]
+pub fn set_action(params: SetActionParams) -> Command<SetActionParams, ()> {
+    Command {
+        execute: "watchdog-set-action".to_string(),
+        arguments: Some(params),
         id: None,
     }
 }
@@ -111,4 +209,7 @@ mod tests {
         let compact_string = r#"{"execute":"query-version"}"#;
         assert_eq!(compact_string, serde_json::to_string(&cmd).unwrap());
     }
+
+    // TODO new_watchdog_set_action
+    // TODO new_set_action
 }
