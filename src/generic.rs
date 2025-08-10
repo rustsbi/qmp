@@ -91,7 +91,8 @@ pub struct Response<T, U> {
     pub response: ReturnOrError<T>,
     /// The id member contains the transaction identification associated
     /// with the command execution if issued by the Client.
-    pub id: U,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<U>,
 }
 
 /// Either this response succeeds or fails with an error.
@@ -154,3 +155,65 @@ pub struct Timestamp {
 }
 
 // TODO tests for generic structures. Refer to 'QMP Examples' section.
+#[cfg(test)]
+mod tests {
+    use super::{Command, Response, ServerGreeting};
+    use crate::qmp_monitor::{VersionInfo, VersionTriple};
+    use serde::{Deserialize, Serialize};
+
+    // Test cases from: https://wiki.qemu.org/Documentation/QMP
+    #[test]
+    fn qmp_documentation_example_1() {
+        let s1_input = r#"{
+            "QMP": {
+                "version": {
+                    "qemu": {
+                        "micro": 0,
+                        "minor": 6,
+                        "major": 1
+                    },
+                    "package": ""
+                },
+                "capabilities": [
+                ]
+            }
+        }"#;
+        let s1_value = ServerGreeting {
+            qmp: super::QmpServerGreeting {
+                version: VersionInfo {
+                    qemu: VersionTriple::new(1, 6, 0),
+                    package: "".to_string(),
+                },
+                capabilities: Vec::new(),
+            },
+        };
+        let c1_input = r#"{ "execute": "qmp_capabilities" }"#;
+        let c1_value: Command<(), ()> = Command {
+            execute: "qmp_capabilities".to_string(),
+            arguments: None,
+            id: None,
+        };
+        let s2_input = r#"{ "return": {}}"#;
+        #[derive(Debug, PartialEq, Serialize, Deserialize)]
+        struct EmptyStruct {}
+        let s2_value: Response<EmptyStruct, ()> = Response {
+            response: crate::generic::ReturnOrError::Return {
+                value: EmptyStruct {},
+            },
+            id: None,
+        };
+        assert_eq!(s1_value, serde_json::from_str(s1_input).unwrap());
+        assert_eq!(c1_value, serde_json::from_str(c1_input).unwrap());
+        assert_eq!(s2_value, serde_json::from_str(s2_input).unwrap());
+    }
+
+    // TODO fn qmp_documentation_example_2
+    /*
+    C: { "execute": "eject", "arguments": { "device": "ide1-cd0" } }
+    S: { "return": {}}
+    */
+
+    // TODO fn qmp_documentation_example_3
+
+    // TODO fn qmp_documentation_example_4
+}

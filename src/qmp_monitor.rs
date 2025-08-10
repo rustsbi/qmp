@@ -27,6 +27,18 @@ pub struct VersionTriple {
     pub micro: u64,
 }
 
+impl VersionTriple {
+    /// Create a version triple from its major, minor and micro values.
+    #[inline]
+    pub const fn new(major: u64, minor: u64, micro: u64) -> Self {
+        VersionTriple {
+            major,
+            minor,
+            micro,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct VersionInfo {
     /// The version of QEMU.
@@ -62,6 +74,18 @@ pub fn query_version() -> Command<(), ()> {
 #[cfg(test)]
 mod tests {
     use super::{VersionInfo, VersionTriple, query_version};
+
+    #[test]
+    fn struct_version_info() {
+        let value_1 = VersionTriple {
+            major: 5,
+            minor: 6,
+            micro: 7,
+        };
+        let value_2 = VersionTriple::new(5, 6, 7);
+        assert_eq!(value_2, value_1)
+    }
+
     #[test]
     fn query_version_result() {
         let string = r#"{
@@ -73,11 +97,7 @@ mod tests {
             "package":""
         }"#;
         let value = VersionInfo {
-            qemu: VersionTriple {
-                major: 0,
-                minor: 11,
-                micro: 5,
-            },
+            qemu: VersionTriple::new(0, 11, 5),
             package: "".to_string(),
         };
         assert_eq!(value, serde_json::from_str(string).unwrap());
